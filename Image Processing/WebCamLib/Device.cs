@@ -149,7 +149,7 @@ namespace Image_Processing.WebCamLib
         {
             SendMessage(deviceHandle, WM_CAP_EDIT_COPY, 0, 0);
             IDataObject dataObject = Clipboard.GetDataObject();
-            if (dataObject == null || !dataObject.GetDataPresent(DataFormats.Bitmap))
+            if (dataObject == null)
             {
                 return null;
             }
