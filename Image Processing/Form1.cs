@@ -1,32 +1,42 @@
-using AForge.Video;
-using AForge.Video.DirectShow;
-using System.Drawing.Design;
+using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using Image_Processing.WebCamLib;
 
 namespace Image_Processing
 {
     public unsafe partial class Form1 : Form
     {
-        Boolean ISWEBCAM;
         private Bitmap loaded, processed;
         private BitmapData loadedBitmapData, processedBitmapData;
         private int width, height, bytesPerPixel, widthInPixels, heightInPixels, widthInBytes, heightInBytes;
         private byte* PtrFirstPixel, PtrFirstPixelProcessed;
-        private FilterInfoCollection videoDevices;
-        private VideoCaptureDevice videoSource;
+        private Boolean webcam = false;
+        private int webcamIndex;
 
         public Form1()
         {
             InitializeComponent();
+            this.WindowState = FormWindowState.Maximized;
         }
 
-        private void InitializeBitMapProcessing()
+        private Boolean InitializeBitMapProcessing()
         {
-            processed = new Bitmap(width, height, loaded.PixelFormat);
+            if (webcam)
+                loaded = DeviceManager.GetDevice(webcamIndex).GetFrame();
+            else
+                loaded = (Bitmap)pictureBox1.Image;
+
+            if (loaded == null) return false;
+
+            width = loaded.Width;
+            height = loaded.Height;
+
+            processed = new Bitmap(width, height);
+
+            bytesPerPixel = Image.GetPixelFormatSize(loaded.PixelFormat) / 8;
             loadedBitmapData = loaded.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, loaded.PixelFormat);
-            processedBitmapData = processed.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, processed.PixelFormat);
+            processedBitmapData = processed.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, loaded.PixelFormat);
+
             widthInPixels = loadedBitmapData.Width;
             heightInPixels = loadedBitmapData.Height;
 
@@ -35,6 +45,7 @@ namespace Image_Processing
 
             PtrFirstPixel = (byte*)loadedBitmapData.Scan0;
             PtrFirstPixelProcessed = (byte*)processedBitmapData.Scan0;
+            return true;
         }
 
         private void PixelCopy(object sender, EventArgs e)
@@ -48,13 +59,11 @@ namespace Image_Processing
 
                 for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                 {
-                    byte blue = loadedCurrentRow[x];
-                    byte green = loadedCurrentRow[x + 1];
-                    byte red = loadedCurrentRow[x + 2];
-
-                    processedCurrentRow[x] = blue;
-                    processedCurrentRow[x + 1] = green;
-                    processedCurrentRow[x + 2] = red;
+                    // B -> G -> R -> A
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        processedCurrentRow[x + b] = loadedCurrentRow[x + b];
+                    }
                 }
             });
 
@@ -73,14 +82,12 @@ namespace Image_Processing
 
                 for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                 {
-                    byte blue = loadedCurrentRow[x];
-                    byte green = loadedCurrentRow[x + 1];
-                    byte red = loadedCurrentRow[x + 2];
-                    byte average = (byte)((blue + green + red) / 3);
-
-                    processedCurrentRow[x] = average;
-                    processedCurrentRow[x + 1] = average;
-                    processedCurrentRow[x + 2] = average;
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        processedCurrentRow[x + b] = (byte)((loadedCurrentRow[x] + loadedCurrentRow[x + 1] + loadedCurrentRow[x + 2]) / 3);
+                        if (b == 3)
+                            processedCurrentRow[x + b] = 255;
+                    }
                 }
             });
 
@@ -99,13 +106,12 @@ namespace Image_Processing
 
                 for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                 {
-                    byte blue = loadedCurrentRow[x];
-                    byte green = loadedCurrentRow[x + 1];
-                    byte red = loadedCurrentRow[x + 2];
-
-                    processedCurrentRow[x] = (byte)(255 - blue);
-                    processedCurrentRow[x + 1] = (byte)(255 - green);
-                    processedCurrentRow[x + 2] = (byte)(255 - red);
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        processedCurrentRow[x + b] = (byte)(255 - loadedCurrentRow[x + b]);
+                        if (b == 3)
+                            processedCurrentRow[x + b] = 255;
+                    }
                 }
             });
 
@@ -120,17 +126,19 @@ namespace Image_Processing
 
             Parallel.For(0, heightInPixels, y =>
             {
+                // Get the current row pointers for both source and destination images
                 byte* loadedCurrentRow = PtrFirstPixel + (y * loadedBitmapData.Stride);
-                byte* processedCurrentRow = PtrFirstPixelProcessed + (y * processedBitmapData.Stride);
+                byte* mirroredRow = PtrFirstPixelProcessed + (y * processedBitmapData.Stride);
 
-                for (int x = 0; x < loadedBitmapData.Width; x++)
+                for (int x = 0; x < widthInBytes / 2; x += bytesPerPixel)
                 {
-                    int mirroredX = (loadedBitmapData.Width - 1 - x) * bytesPerPixel;
-                    int originalX = x * bytesPerPixel;
+                    int mirroredX = widthInBytes - bytesPerPixel - x;
 
-                    processedCurrentRow[mirroredX] = loadedCurrentRow[originalX];         // Blue
-                    processedCurrentRow[mirroredX + 1] = loadedCurrentRow[originalX + 1]; // Green
-                    processedCurrentRow[mirroredX + 2] = loadedCurrentRow[originalX + 2]; // Red
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        mirroredRow[x + b] = loadedCurrentRow[mirroredX + b];
+                        mirroredRow[mirroredX + b] = loadedCurrentRow[x + b];
+                    }
                 }
             });
 
@@ -150,11 +158,10 @@ namespace Image_Processing
 
                 for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                 {
-                    mirroredLine[x] = loadedCurrentRow[x];       // Blue
-                    mirroredLine[x + 1] = loadedCurrentRow[x + 1]; // Green
-                    mirroredLine[x + 2] = loadedCurrentRow[x + 2]; // Red
-                    if (bytesPerPixel == 4)
-                        mirroredLine[x + 3] = loadedCurrentRow[x + 3];
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        mirroredLine[x + b] = loadedCurrentRow[x + b];
+                    }
                 }
             });
 
@@ -195,9 +202,8 @@ namespace Image_Processing
 
         private void Brightness(object sender, EventArgs e)
         {
+            if (!this.InitializeBitMapProcessing()) return;
             int value = trackBar1.Value;
-            this.InitializeBitMapProcessing();
-
             Parallel.For(0, heightInPixels, y =>
             {
                 byte* loadedCurrentRow = PtrFirstPixel + (y * loadedBitmapData.Stride);
@@ -222,9 +228,10 @@ namespace Image_Processing
                         red = (byte)Math.Max(red + value, 0);
                     }
 
-                    processedCurrentRow[x] = blue;
-                    processedCurrentRow[x + 1] = green;
-                    processedCurrentRow[x + 2] = red;
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        processedCurrentRow[x + b] = (b == 3) ? (byte)255 : (b == 0) ? blue : (b == 1) ? green : red;
+                    }
                 }
             });
             loaded.UnlockBits(loadedBitmapData);
@@ -234,7 +241,7 @@ namespace Image_Processing
 
         private void Contrast(object sender, EventArgs e)
         {
-            this.InitializeBitMapProcessing();
+            if (!this.InitializeBitMapProcessing()) return;
             int percent = trackBar2.Value;
             int width = loaded.Width;
             int height = loaded.Height;
@@ -249,14 +256,18 @@ namespace Image_Processing
 
                 for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                 {
-                    byte blue = loadedCurrentRow[x];
-                    byte green = loadedCurrentRow[x + 1];
-                    byte red = loadedCurrentRow[x + 2];
-                    byte average = (byte)((blue + green + red) / 3);
-
-                    processedCurrentRow[x] = average;
-                    processedCurrentRow[x + 1] = average;
-                    processedCurrentRow[x + 2] = average;
+                    byte average = 0;
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        processedCurrentRow[x + b] = loadedCurrentRow[x + b];
+                        if (b == 3)
+                        {
+                            processedCurrentRow[x + b] = 255;
+                            break;
+                        }
+                        average += (byte)loadedCurrentRow[x + b];
+                    }
+                    average /= 3;
                     hist[average]++;
                 }
             });
@@ -283,15 +294,17 @@ namespace Image_Processing
 
                 for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                 {
+
                     byte blue = loadedCurrentRow[x];
-                    byte green = loadedCurrentRow[x + 1];
-                    byte red = loadedCurrentRow[x + 2];
 
                     int adjustedGray = Ymap[blue];
 
-                    processedCurrentRow[x] = (byte)adjustedGray;
-                    processedCurrentRow[x + 1] = (byte)adjustedGray;
-                    processedCurrentRow[x + 2] = (byte)adjustedGray;
+                    for (int b = 0; b < bytesPerPixel; b++)
+                    {
+                        processedCurrentRow[x + b] = (byte)adjustedGray;
+                        if (b == 3)
+                            processedCurrentRow[x + b] = 255;
+                    }
                 }
             });
             loaded.UnlockBits(loadedBitmapData);
@@ -301,41 +314,51 @@ namespace Image_Processing
 
         public unsafe void Rotation(object sender, EventArgs e)
         {
-            this.InitializeBitMapProcessing();
-            int degree = trackBar3.Value;
-            float angle = degree * (float)Math.PI / 180;
-            int centerX = loaded.Width / 2;
-            int centerY = loaded.Height / 2;
-
-            float cosA = (float)Math.Cos(angle);
-            float sinA = (float)Math.Sin(angle);
-
-            Parallel.For(0, heightInPixels, y =>
+            try
             {
-                byte* processedCurrentRow = PtrFirstPixelProcessed + (y * processedBitmapData.Stride);
+                if (!this.InitializeBitMapProcessing()) return;
+                int degree = trackBar3.Value;
+                float angle = degree * (float)Math.PI / 180;
+                int centerX = loaded.Width / 2;
+                int centerY = loaded.Height / 2;
 
-                for (int x = 0; x < widthInBytes; x += bytesPerPixel)
+                float cosA = (float)Math.Cos(angle);
+                float sinA = (float)Math.Sin(angle);
+
+                Parallel.For(0, heightInPixels, y =>
                 {
-                    int x0 = (x / bytesPerPixel) - centerX;
-                    int y0 = y - centerY;
+                    byte* processedCurrentRow = PtrFirstPixelProcessed + (y * processedBitmapData.Stride);
 
-                    int xs = (int)(x0 * cosA + y0 * sinA) + centerX;
-                    int ys = (int)(-x0 * sinA + y0 * cosA) + centerY;
-
-                    if (xs >= 0 && xs < width && ys >= 0 && ys < height)
+                    for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                     {
-                        byte* sourcePixel = PtrFirstPixel + ys * loadedBitmapData.Stride + xs * bytesPerPixel;
+                        int x0 = (x / bytesPerPixel) - centerX;
+                        int y0 = y - centerY;
 
-                        processedCurrentRow[x] = sourcePixel[0];
-                        processedCurrentRow[x + 1] = sourcePixel[1];
-                        processedCurrentRow[x + 2] = sourcePixel[2];
+                        int xs = (int)(x0 * cosA + y0 * sinA) + centerX;
+                        int ys = (int)(-x0 * sinA + y0 * cosA) + centerY;
+
+                        if (xs >= 0 && xs < width && ys >= 0 && ys < height)
+                        {
+                            byte* sourcePixel = PtrFirstPixel + ys * loadedBitmapData.Stride + xs * bytesPerPixel;
+
+                            for(int b = 0; b < bytesPerPixel; b++)
+                            {
+                                processedCurrentRow[x + b] = sourcePixel[b];
+                                if(b == 3)
+                                    processedCurrentRow[x + b] = 255;
+                            }
+                        }
                     }
-                }
-            });
+                });
 
-            loaded.UnlockBits(loadedBitmapData);
-            processed.UnlockBits(processedBitmapData);
-            pictureBox2.Image = processed;
+                loaded.UnlockBits(loadedBitmapData);
+                processed.UnlockBits(processedBitmapData);
+                pictureBox2.Image = processed;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         public unsafe void Sepia(object sender, EventArgs e)
@@ -356,12 +379,90 @@ namespace Image_Processing
                     processedCurrentRow[x] = (byte)Math.Min((int)(red * 0.272 + green * 0.534 + blue * 0.131), 255);
                     processedCurrentRow[x + 1] = (byte)Math.Min((int)(red * 0.349 + green * 0.686 + blue * 0.168), 255);
                     processedCurrentRow[x + 2] = (byte)Math.Min((int)(red * 0.393 + green * 0.769 + blue * 0.189), 255);
+                    if (bytesPerPixel == 4)
+                        processedCurrentRow[x + 3] = 255;
                 }
             });
 
             loaded.UnlockBits(loadedBitmapData);
             processed.UnlockBits(processedBitmapData);
             pictureBox2.Image = processed;
+        }
+        private void Subtract(object sender, EventArgs e)
+        {
+            Color myGreen = Color.FromArgb(0, 255, 0);
+            int greyGreen = (myGreen.R + myGreen.G + myGreen.B) / 3;
+            int threshold = 1;
+
+            Bitmap a = (Bitmap)pictureBox1.Image;
+            Bitmap b = (Bitmap)pictureBox2.Image;
+
+            Bitmap result = new Bitmap(a.Width, a.Height);
+
+            byte agraydata = 0;
+            byte bgraydata = 0;
+            for (int x = 0; x < a.Width; x++)
+            {
+                for (int y = 0; y < a.Height; y++)
+                {
+                    Color adata = a.GetPixel(x, y);
+                    Color bdata = b.GetPixel(x, y);
+
+                    agraydata = (byte)((adata.R + adata.G + adata.B) / 3);
+                    bgraydata = (byte)((bdata.R + bdata.G + bdata.B) / 3);
+
+                    if (Math.Abs(agraydata - greyGreen) > threshold)
+                        result.SetPixel(x, y, adata);
+                    else
+                        result.SetPixel(x, y, bdata);
+                }
+            }
+            pictureBox3.Image = result;
+            processed = b;
+        }
+
+        private void Threshold(object sender, EventArgs e)
+        {
+            if (!this.InitializeBitMapProcessing()) return;
+
+            Bitmap a = (Bitmap)pictureBox1.Image;
+            Bitmap b = new Bitmap(a.Width, a.Height);
+            int value = trackBar4.Value;
+            byte graydata = 0;
+
+            Parallel.For(0, heightInPixels, y =>
+            {
+                byte* loadedCurrentRow = PtrFirstPixel + (y * loadedBitmapData.Stride);
+                byte* processedCurrentRow = PtrFirstPixelProcessed + (y * processedBitmapData.Stride);
+
+                for (int x = 0; x < widthInBytes; x += bytesPerPixel)
+                {
+                    byte blue = loadedCurrentRow[x];
+                    byte green = loadedCurrentRow[x + 1];
+                    byte red = loadedCurrentRow[x + 2];
+
+                    graydata = (byte)((blue + green + red) / 3);
+                    if (graydata > value)
+                    {
+                        processedCurrentRow[x] = 255;
+                        processedCurrentRow[x + 1] = 255;
+                        processedCurrentRow[x + 2] = 255;
+                    }
+                    else
+                    {
+                        processedCurrentRow[x] = 0;
+                        processedCurrentRow[x + 1] = 0;
+                        processedCurrentRow[x + 2] = 0;
+                    }
+                    if (bytesPerPixel == 4)
+                        processedCurrentRow[x + 3] = 255;
+                }
+            });
+
+            loaded.UnlockBits(loadedBitmapData);
+            processed.UnlockBits(processedBitmapData);
+            pictureBox2.Image = processed;
+
         }
 
         private void openToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -371,12 +472,17 @@ namespace Image_Processing
 
         private void openFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            loaded = new Bitmap(openFileDialog1.FileName);
-            pictureBox1.Image = loaded;
-            width = loaded.Width;
-            height = loaded.Height;
+            pictureBox1.Image = new Bitmap(openFileDialog1.FileName);
+        }
 
-            bytesPerPixel = Image.GetPixelFormatSize(loaded.PixelFormat) / 8;
+        private void openBackgroundToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openFileDialog2.ShowDialog();
+        }
+
+        private void openFileDialog2_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            pictureBox2.Image = new Bitmap(openFileDialog2.FileName);
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -391,79 +497,35 @@ namespace Image_Processing
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);//constructor
-            foreach (FilterInfo Device in videoDevices)
+            Device[] devices = DeviceManager.GetAllDevices();
+            devicesToolStripMenuItem.DropDownItems.Clear();
+            devicesToolStripMenuItem.DropDownItems.AddRange(devices.Select(d =>
             {
-                //comboBox1.Items.Add(Device.Name);
-                MessageBox.Show(Device.ToString());
-            }
-
-            //comboBox1.SelectedIndex = 0; // default
-            videoSource = new VideoCaptureDevice();
-        }
-
-        private void onToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var menuItem = sender as ToolStripMenuItem;
-
-            if (menuItem != null)
-            {
-                ISWEBCAM = menuItem.Text == "Off";
-                menuItem.Text = ISWEBCAM ? "On" : "Off";
-            }
-        }
-
-
-        private void btnStartCamera_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                MessageBox.Show($"Number of video devices found: {videoDevices.Count}");
-
-                foreach (var device in videoDevices)
+                var menuItem = new ToolStripMenuItem(d.Name)
                 {
-                    MessageBox.Show($"Device: {device.ToString()}");
-                }
+                    Tag = d
+                };
+                menuItem.Click += DeviceMenuItem_Click;
+                return menuItem;
+            }).ToArray());
+        }
 
-                if (videoDevices.Count > 0)
-                {
-                    videoSource = new VideoCaptureDevice(videoDevices[1].MonikerString);
-                    videoSource.NewFrame += new NewFrameEventHandler(videoSource_NewFrame);
-                    videoSource.Start();
-
-                    if (videoSource.IsRunning)
-                    {
-                        MessageBox.Show("Camera is now running.");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Failed to start the camera.");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("No video sources found.");
-                }
-            }
-            catch (Exception ex)
+        private void DeviceMenuItem_Click(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripMenuItem menuItem && menuItem.Tag is Device device)
             {
-                MessageBox.Show($"An error occurred: {ex.Message}");
+                webcam = true;
+                webcamIndex = device.Index;
+                device.ShowWindow(pictureBox1);
             }
         }
 
-        private void videoSource_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        private void offToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Display the current frame in the PictureBox
-            pictureBox1.Image = (Bitmap)eventArgs.Frame.Clone();
-        }
-
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            // Stop the video capture when closing the form
-            if (videoSource != null && videoSource.IsRunning)
+            if (webcam)
             {
-                videoSource.SignalToStop();
-                videoSource.WaitForStop();
+                DeviceManager.GetDevice(webcamIndex).Stop();
+                webcam = false;
             }
         }
     }
