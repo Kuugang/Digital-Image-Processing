@@ -77,6 +77,46 @@ namespace Image_Processing
                 case "Threshold":
                     DIP.Threshold(ref loaded, ref processed, trackBar4.Value);
                     break;
+                case "Smoothing":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.Smooth(processed);
+                    break;
+                case "GaussianBlur":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.GaussianBlur(processed);
+                    break;
+                case "Sharpen":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.Sharpen(processed);
+                    break;
+                case "Mean Removal":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.MeanRemoval(processed);
+                    break;
+                case "Embossing Laplascian":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.EmbossLaplacian(processed);
+                    break;
+                case "Embossing Vertical Horizontal":
+                    processed = (Bitmap)loaded.Clone();
+                    BitmapFilter.GaussianBlur(processed);
+                    break;
+                case "Embossing All Directions":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.EmbossAllDirections(processed);
+                    break;
+                case "Embossing Lossy":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.EmbossLossy(processed);
+                    break;
+                case "Embossing Horizontal":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.EmbossHorizontal(processed);
+                    break;
+                case "Embossing Vertical":
+                    processed = (Bitmap)loaded.Clone(); ;
+                    BitmapFilter.EmbossVertical(processed);
+                    break;
             }
             pictureBox2.Image = processed;
         }
@@ -263,6 +303,164 @@ namespace Image_Processing
                 pictureBox2.Image = processed;
             }
 
+        }
+        private void Smoothing(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Smoothing";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.Smooth(processed);
+                pictureBox2.Image = processed;
+            }
+        }
+        private void GaussianBlur(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "GaussianBlur";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.GaussianBlur(processed);
+                pictureBox2.Image = processed;
+            }
+        }
+        private void Sharpen(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Sharpen";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.Sharpen(processed);
+                pictureBox2.Image = processed;
+            }
+        }
+
+        private void MeanRemoval(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Mean Removal";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.MeanRemoval(processed);
+                pictureBox2.Image = processed;
+            }
+        }
+
+        private void EmbossingLaplascian(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Embossing Laplascian";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.EmbossLaplacian(processed);
+                pictureBox2.Image = processed;
+            }
+        }
+        private void EmbossingHorizontalVertical(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Embossing Vertical Horizontal";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.EmbossVerticalHorizontal(processed);
+                pictureBox2.Image = processed;
+            }
+        }
+
+        private void EmbossingAllDirections(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Embossing All Directions";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.EmbossAllDirections(processed);
+                pictureBox2.Image = processed;
+            }
+
+        }
+
+        private void EmbossingLossy(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Embossing Lossy";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.EmbossLossy(processed);
+                pictureBox2.Image = processed;
+            }
+        }
+
+        private void EmbossingHorizontal(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Embossing Horizontal";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.EmbossHorizontal(processed);
+                pictureBox2.Image = processed;
+            }
+
+        }
+
+        private void EmbossingVertical(object sender, EventArgs e)
+        {
+            if (!this.GetBitmaps()) return;
+            if (webcam)
+            {
+                webcamDIPMode = "Embossing Vertical";
+                timer1.Start();
+            }
+            else
+            {
+                processed = (Bitmap)loaded.Clone(); ;
+                BitmapFilter.EmbossVertical(processed);
+                pictureBox2.Image = processed;
+            }
         }
 
         private void openToolStripMenuItem1_Click(object sender, EventArgs e)

@@ -35,7 +35,6 @@ namespace Image_Processing
         public static void PixelCopy(ref Bitmap a, ref Bitmap b)
         {
             InitializeBitMapProcessing(ref a, ref b);
-
             Parallel.For(0, heightInPixels, y =>
             {
                 byte* loadedCurrentRow = PtrFirstPixel + (y * loadedBitmapData.Stride);
