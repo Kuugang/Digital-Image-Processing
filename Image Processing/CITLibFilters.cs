@@ -489,7 +489,6 @@ namespace Image_Processing
             return BitmapFilter.Conv3x3(b, m);
         }
 
-
         public static bool EdgeDetectQuick(Bitmap b)
         {
             ConvMatrix m = new ConvMatrix();

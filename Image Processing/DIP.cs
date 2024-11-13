@@ -361,20 +361,20 @@ namespace Image_Processing
         public static void Threshold(ref Bitmap a, ref Bitmap b, int value)
         {
             InitializeBitMapProcessing(ref a, ref b);
-            byte graydata = 0;
+            int graydata = 0;
 
-            Parallel.For(0, heightInPixels, y =>
+            for(int y = 0; y < heightInPixels; y++)
             {
                 byte* loadedCurrentRow = PtrFirstPixel + (y * loadedBitmapData.Stride);
                 byte* processedCurrentRow = PtrFirstPixelProcessed + (y * processedBitmapData.Stride);
 
                 for (int x = 0; x < widthInBytes; x += bytesPerPixel)
                 {
-                    byte blue = loadedCurrentRow[x];
-                    byte green = loadedCurrentRow[x + 1];
-                    byte red = loadedCurrentRow[x + 2];
+                    int blue = loadedCurrentRow[x];
+                    int green = loadedCurrentRow[x + 1];
+                    int red = loadedCurrentRow[x + 2];
 
-                    graydata = (byte)((blue + green + red) / 3);
+                    graydata = (blue + green + red) / 3;
                     if (graydata > value)
                     {
                         processedCurrentRow[x] = 255;
@@ -390,7 +390,7 @@ namespace Image_Processing
                     if (bytesPerPixel == 4)
                         processedCurrentRow[x + 3] = 255;
                 }
-            });
+            };
 
             a.UnlockBits(loadedBitmapData);
             b.UnlockBits(processedBitmapData);

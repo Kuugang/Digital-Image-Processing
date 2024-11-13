@@ -1,6 +1,12 @@
+using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Windows.Forms;
+using System.Xml.Linq;
 using Image_Processing.WebCamLib;
+using Microsoft.Extensions.Logging;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Image_Processing
 {
@@ -524,6 +530,131 @@ namespace Image_Processing
             {
                 DeviceManager.GetDevice(webcamIndex).Stop();
                 webcam = false;
+            }
+        }
+
+        private void countToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            processed = (Bitmap)loaded.Clone();
+            DIP.Threshold(ref loaded, ref processed, 200);
+
+            int blackThreshold = 20;
+
+            List<List<Point>> objects = [];
+
+            bool[,] visited = new bool[processed.Width, processed.Height];
+
+            for (int y = 0; y < processed.Height; y++)
+            {
+                for (int x = 0; x < processed.Width; x++)
+                {
+                    if (processed.GetPixel(x, y).R == 0 && !visited[x, y])
+                    {
+                        List<Point> points = [];
+                        FindPoints(processed, x, y, visited, blackThreshold, points);
+                        if (points.Count > 0)
+                        {
+                            objects.Add(points);
+                        }
+                    }
+                }
+            }
+            pictureBox2.Image = processed;
+
+            int count = 0;
+            double value = 0;
+
+            int five = 0;
+            int one = 0;
+            int p25 = 0;
+            int p10 = 0;
+            int p05 = 0;
+
+            for (int i = 0; i < objects.Count; i++)
+            {
+                if (objects[i].Count > 6500)
+                {
+                    for (int j = 0; j < objects[i].Count; j++)
+                    {
+                        processed.SetPixel(objects[i][j].X, objects[i][j].Y, Color.Red);
+                    }
+                    int points = objects[i].Count;
+                    //Debug.WriteLine("Coin " + count + " has " + coints[i].Count + " points");
+                    count++;
+
+                    //Determine coin type based on number of pixels, not so efficient:)
+                    if (points > 18001)
+                    {
+                        value += 5;
+                        five++;
+                    }
+                    else if (points > 15001)
+                    {
+                        value += 1;
+                        one++;
+                    }
+                    else if (points > 11001)
+                    {
+                        value += 0.25f;
+                        p25++;
+                    }
+                    else if (points > 8001)
+                    {
+                        value += 0.10f;
+                        p10++;
+                    }
+                    else if (points > 6500)
+                    {
+                        value += 0.05f;
+                        p05++;
+                    }
+                }
+            }
+
+            String result =
+                "Coins found: " + count +
+                "\nTotal value: " + value +
+                "\n5 x " + five + " = " + 5 * five +
+                "\n1 x " + one + " = " + 1 * one +
+                "\n0.25 x " + p25 + " = " + 0.25 * p25 +
+                "\n0.10 x " + p10 + " = " + 0.10 * p10 +
+                "\n0.05 x " + p05 + " = " + 0.05 * p05;
+            Debug.WriteLine(result);
+            MessageBox.Show(result);
+
+        }
+
+        static void FindPoints(Bitmap image, int startX, int startY, bool[,] visited, int threshold, List<Point> contour)
+        {
+            Stack<Point> stack = new Stack<Point>();
+            stack.Push(new Point(startX, startY));
+            visited[startX, startY] = true;
+
+            while (stack.Count > 0)
+            {
+                Point p = stack.Pop();
+                Color neighborColor;
+
+                contour.Add(p);
+
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        int nx = p.X + dx;
+                        int ny = p.Y + dy;
+
+                        if (nx >= 0 && ny >= 0 && nx < image.Width && ny < image.Height && !visited[nx, ny])
+                        {
+                            neighborColor = image.GetPixel(nx, ny);
+                            if (neighborColor.R < threshold)
+                            {
+                                visited[nx, ny] = true;
+                                stack.Push(new Point(nx, ny));
+                            }
+                        }
+                    }
+                }
             }
         }
     }
