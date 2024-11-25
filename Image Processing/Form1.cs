@@ -1,35 +1,72 @@
-using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Windows.Forms;
-using System.Xml.Linq;
 using Image_Processing.WebCamLib;
-using Microsoft.Extensions.Logging;
-using static System.Net.Mime.MediaTypeNames;
+using System.Diagnostics;
+
+using AForge.Video;
+using AForge.Video.DirectShow;
+using System.Windows.Forms;
 
 namespace Image_Processing
 {
     public unsafe partial class Form1 : Form
     {
-        private Bitmap loaded, processed;
+        private Bitmap loaded, processed, imgA, imgB, coins;
+        private Color subtractColor = Color.FromArgb(255, 0, 255, 1);
 
         private Boolean webcam = false;
-        private int webcamIndex;
         private String webcamDIPMode;
+        private int webcamIndex;
+        FilterInfoCollection fic;
+        VideoCaptureDevice vcd;
+
 
         public Form1()
         {
             InitializeComponent();
-            this.WindowState = FormWindowState.Maximized;
+            InitImage();
+            fic = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            vcd = new VideoCaptureDevice();
+
+            foreach (FilterInfo dev in fic)
+            {
+                comboBox1.Items.Add(dev.Name);
+                comboBox1.SelectedIndex = 0;
+            }
+        }
+
+        public void InitImage()
+        {
+            String dip = System.IO.Path.Combine(Application.StartupPath, "..\\..\\..\\Images\\dip.jpg");
+            if (System.IO.File.Exists(dip))
+            {
+                loaded = new Bitmap(dip);
+                pictureBox1.Image = loaded;
+            }
+            String suba = System.IO.Path.Combine(Application.StartupPath, "..\\..\\..\\Images\\imgA.png");
+            if (System.IO.File.Exists(suba))
+            {
+                imgA = new Bitmap(suba);
+                SubtractPic1.Image = imgA;
+            }
+
+            String subb = System.IO.Path.Combine(Application.StartupPath, "..\\..\\..\\Images\\imgB.png");
+            if (System.IO.File.Exists(subb))
+            {
+                imgB = new Bitmap(subb);
+                SubtractPic2.Image = imgB;
+            }
+
+            String coinsPath = System.IO.Path.Combine(Application.StartupPath, "..\\..\\..\\Images\\coins.jpeg");
+            if (System.IO.File.Exists(coinsPath))
+            {
+                coins = new Bitmap(coinsPath);
+                pictureBoxCoins.Image = coins;
+            }
+            pictureBoxSubtractColor.BackColor = subtractColor;
         }
 
         private Boolean GetBitmaps()
         {
-            if (webcam)
-                loaded = DeviceManager.GetDevice(webcamIndex).GetFrame();
-            else
-                loaded = (Bitmap)pictureBox1.Image;
+            loaded = (Bitmap)pictureBox1.Image;
             if (loaded == null)
             {
                 return false;
@@ -37,7 +74,6 @@ namespace Image_Processing
             processed = new Bitmap(loaded.Width, loaded.Height);
             return true;
         }
-        private bool shouldContinueProcessing = true;
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (!this.GetBitmaps()) return;
@@ -51,37 +87,37 @@ namespace Image_Processing
             switch (webcamDIPMode)
             {
                 case "PixelCopy":
-                    DIP.PixelCopy(ref loaded, ref processed);
+                    global::DIP.PixelCopy(ref loaded, ref processed);
                     break;
                 case "Greyscale":
-                    DIP.Greyscale(ref loaded, ref processed);
+                    global::DIP.Greyscale(ref loaded, ref processed);
                     break;
                 case "Color Inversion":
-                    DIP.ColorInversion(ref loaded, ref processed);
+                    global::DIP.ColorInversion(ref loaded, ref processed);
                     break;
                 case "Mirror Horizontal":
-                    DIP.MirrorHorizontal(ref loaded, ref processed);
+                    global::DIP.MirrorHorizontal(ref loaded, ref processed);
                     break;
                 case "Mirror Vertical":
-                    DIP.MirrorVertical(ref loaded, ref processed);
+                    global::DIP.MirrorVertical(ref loaded, ref processed);
                     break;
                 case "Histogram":
-                    DIP.Histogram(ref loaded, ref processed);
+                    global::DIP.Histogram(ref loaded, ref processed);
                     break;
                 case "Sepia":
-                    DIP.Sepia(ref loaded, ref processed);
+                    global::DIP.Sepia(ref loaded, ref processed);
                     break;
                 case "Brightness":
-                    DIP.Brightness(ref loaded, ref processed, trackBar1.Value);
+                    global::DIP.Brightness(ref loaded, ref processed, trackBar1.Value);
                     break;
                 case "Contrast":
-                    DIP.Contrast(ref loaded, ref processed, trackBar2.Value);
+                    global::DIP.Contrast(ref loaded, ref processed, trackBar2.Value);
                     break;
                 case "Rotation":
-                    DIP.Rotation(ref loaded, ref processed, trackBar3.Value);
+                    global::DIP.Rotation(ref loaded, ref processed, trackBar3.Value);
                     break;
                 case "Threshold":
-                    DIP.Threshold(ref loaded, ref processed, trackBar4.Value);
+                    global::DIP.Threshold(ref loaded, ref processed, trackBar4.Value);
                     break;
                 case "Smoothing":
                     processed = (Bitmap)loaded.Clone(); ;
@@ -123,6 +159,14 @@ namespace Image_Processing
                     processed = (Bitmap)loaded.Clone(); ;
                     BitmapFilter.EmbossVertical(processed);
                     break;
+                case "Subtract":
+                    Bitmap a = (Bitmap)SubtractPic1.Image;
+                    Bitmap b = (Bitmap)SubtractPic2.Image;
+                    a = DIP.ResizeImage(a, b);
+                    Bitmap c = new Bitmap(a.Width, a.Height);
+                    global::DIP.Subtract(ref a, ref b, ref c, subtractColor);
+                    SubtractPic3.Image = c;
+                    return;
             }
             pictureBox2.Image = processed;
         }
@@ -137,7 +181,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.PixelCopy(ref loaded, ref processed);
+                global::DIP.PixelCopy(ref loaded, ref processed);
                 pictureBox2.Image = processed;
             }
         }
@@ -152,7 +196,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.Greyscale(ref loaded, ref processed);
+                global::DIP.Greyscale(ref loaded, ref processed);
                 pictureBox2.Image = processed;
             }
         }
@@ -167,7 +211,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.ColorInversion(ref loaded, ref processed);
+                global::DIP.ColorInversion(ref loaded, ref processed);
                 pictureBox2.Image = processed;
             }
         }
@@ -182,7 +226,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.MirrorHorizontal(ref loaded, ref processed);
+                global::DIP.MirrorHorizontal(ref loaded, ref processed);
                 pictureBox2.Image = processed;
             }
         }
@@ -196,7 +240,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.MirrorVertical(ref loaded, ref processed);
+                global::DIP.MirrorVertical(ref loaded, ref processed);
                 pictureBox2.Image = processed;
             }
         }
@@ -211,7 +255,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.Histogram(ref loaded, ref processed);
+                global::DIP.Histogram(ref loaded, ref processed);
                 pictureBox2.Image = processed;
             }
         }
@@ -226,7 +270,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.Brightness(ref loaded, ref processed, trackBar1.Value);
+                global::DIP.Brightness(ref loaded, ref processed, trackBar1.Value);
                 pictureBox2.Image = processed;
             }
         }
@@ -241,7 +285,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.Contrast(ref loaded, ref processed, trackBar2.Value);
+                global::DIP.Contrast(ref loaded, ref processed, trackBar2.Value);
                 pictureBox2.Image = processed;
             }
         }
@@ -256,7 +300,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.Rotation(ref loaded, ref processed, trackBar3.Value);
+                global::DIP.Rotation(ref loaded, ref processed, trackBar3.Value);
                 pictureBox2.Image = processed;
             }
         }
@@ -271,28 +315,29 @@ namespace Image_Processing
             }
             else
             {
-                DIP.Sepia(ref loaded, ref processed);
+                global::DIP.Sepia(ref loaded, ref processed);
                 pictureBox2.Image = processed;
             }
         }
         private void Subtract(object sender, EventArgs e)
         {
             if (!this.GetBitmaps()) return;
-            //if (webcam)
-            //{
-            //    TIRED
-            //    webcamDIPMode = "Subtract";
-            //    timer1.Start();
-            //}
-            //else
-            //{
-            Bitmap a = (Bitmap)pictureBox1.Image;
-            Bitmap b = (Bitmap)pictureBox2.Image;
+            if (webcam)
+            {
+                webcamDIPMode = "Subtract";
+                timer1.Start();
+            }
+            else
+            {
+                Bitmap a = (Bitmap)SubtractPic1.Image;
+                Bitmap b = (Bitmap)SubtractPic2.Image;
+                a = DIP.ResizeImage(a, b);
 
-            DIP.Subtract(ref a, ref b, ref processed);
-            pictureBox3.Image = processed;
-            //}
-            pictureBox3.Image = processed;
+                Bitmap c = new Bitmap(a.Width, a.Height);
+
+                global::DIP.Subtract(ref a, ref b, ref c, subtractColor);
+                SubtractPic3.Image = c;
+            }
         }
 
         private void Threshold(object sender, EventArgs e)
@@ -305,7 +350,7 @@ namespace Image_Processing
             }
             else
             {
-                DIP.Threshold(ref loaded, ref processed, trackBar4.Value);
+                global::DIP.Threshold(ref loaded, ref processed, trackBar4.Value);
                 pictureBox2.Image = processed;
             }
 
@@ -498,6 +543,83 @@ namespace Image_Processing
         {
             processed.Save(saveFileDialog1.FileName);
         }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            openFileDialogSubtractImageA.ShowDialog();
+        }
+        private void openFileDialogSubtractImageA_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SubtractPic1.Image = new Bitmap(openFileDialogSubtractImageA.FileName);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            openFileDialogSubtractImageB.ShowDialog();
+        }
+
+        private void openFileDialogSubtractImageB_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SubtractPic2.Image = new Bitmap(openFileDialogSubtractImageB.FileName);
+        }
+        private void button4_Click(object sender, EventArgs e)
+        {
+            openFileDialogCoins.ShowDialog();
+        }
+
+        private void openFileDialogCoins_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            pictureBoxCoins.Image = new Bitmap(openFileDialogCoins.FileName);
+            coins = new Bitmap(openFileDialogCoins.FileName);
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            if (colorDialog1.ShowDialog() == DialogResult.OK)
+            {
+                pictureBoxSubtractColor.BackColor = colorDialog1.Color;
+                subtractColor = colorDialog1.Color;
+            }
+        }
+
+        private void Vcd_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        {
+            Bitmap frame = (Bitmap)eventArgs.Frame.Clone();
+            pictureBox1.Image = frame;
+            SubtractPic1.Image = frame;
+        }
+
+        private void stopCamera()
+        {
+            vcd.SignalToStop();
+            vcd.WaitForStop();
+        }
+
+        private void useCamera()
+        {
+            if (checkBox1.Checked)
+            {
+                webcam = true;
+                stopCamera();
+                vcd = new VideoCaptureDevice(fic[comboBox1.SelectedIndex].MonikerString);
+                vcd.NewFrame += Vcd_NewFrame;
+                vcd.Start();
+            }
+            else
+            {
+                webcam = false;
+                stopCamera();
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            useCamera();
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            useCamera();
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -533,98 +655,96 @@ namespace Image_Processing
             }
         }
 
-        private void countToolStripMenuItem_Click_1(object sender, EventArgs e)
+        private void CountCoins(object sender, EventArgs e)
         {
-            processed = (Bitmap)loaded.Clone();
-            DIP.Threshold(ref loaded, ref processed, 200);
+            //processed = (Bitmap)loaded.Clone();
 
-            int blackThreshold = 20;
+            //Bitmap b = DIP.GrayScale(loaded);
+            //b = ConvolutionMatrix.GaussianBlur(b);
+            //b = ConvolutionMatrix.EdgeDetect(b, 160);
+            //b = DIP.MedianFilter(b, 3);
+            //b = ConvolutionMatrix.Dilation(b);
+            //b = ConvolutionMatrix.Erosion(b);
+            //b = DIP.MedianFilter(b, 3);
+            //b = DIP.MedianFilter(b, 3);
+            //b = DIP.MedianFilter(b, 3);
+            //pictureBox2.Image = b;
 
-            List<List<Point>> objects = [];
 
-            bool[,] visited = new bool[processed.Width, processed.Height];
+            //Tuple<List<List<Point>>, List<int>, List<double>> t = CoinCounter.CountCoins(Utils.TraceContours(b));
+            //List<List<Point>> coins;
+            //List<int> coinValues;
+            ////List<double> coinSizes;
 
-            for (int y = 0; y < processed.Height; y++)
-            {
-                for (int x = 0; x < processed.Width; x++)
-                {
-                    if (processed.GetPixel(x, y).R == 0 && !visited[x, y])
+            //coins = t.Item1;
+            //coinValues = t.Item2;
+            ////coinSizes = t.Item3;
+            //int valSum = coinValues.Sum();
+
+            //Debug.WriteLine("Coins found: " + coins.Count);
+
+            //Debug.WriteLine(valSum / 100 + " Peso and " + valSum % 100 + " Cents");
+
+            //Bitmap contourImage = new Bitmap(loaded);
+            //foreach (var contour in coins)
+            //{
+            //    foreach (var point in contour)
+            //    {
+            //        contourImage.SetPixel(point.X, point.Y, Color.Red);
+            //    }
+            //}
+
+            //pictureBox2.Image = contourImage;
+
+            Bitmap bmresult = new Bitmap(pictureBoxCoins.Image);
+            global::DIP.Threshold(ref coins, ref bmresult, 200);
+
+            var visited = new bool[coins.Width, coins.Height];
+            var objects = new List<List<Point>>();
+
+            for (int y = 0; y < bmresult.Height; y++)
+                for (int x = 0; x < bmresult.Width; x++)
+                    if (bmresult.GetPixel(x, y).R == 0 && !visited[x, y])
                     {
-                        List<Point> points = [];
-                        FindPoints(processed, x, y, visited, blackThreshold, points);
-                        if (points.Count > 0)
-                        {
+                        var points = new List<Point>();
+                        Fill(bmresult, x, y, visited, 20, points);
+                        if (points.Count > 6500)
                             objects.Add(points);
-                        }
                     }
-                }
-            }
-            pictureBox2.Image = processed;
 
-            int count = 0;
-            double value = 0;
+            var coinCounts = new Dictionary<double, int>();
+            var totalCoins = 0;
+            var totalValue = 0.0;
 
-            int five = 0;
-            int one = 0;
-            int p25 = 0;
-            int p10 = 0;
-            int p05 = 0;
-
-            for (int i = 0; i < objects.Count; i++)
+            foreach (var points in objects)
             {
-                if (objects[i].Count > 6500)
-                {
-                    for (int j = 0; j < objects[i].Count; j++)
-                    {
-                        processed.SetPixel(objects[i][j].X, objects[i][j].Y, Color.Red);
-                    }
-                    int points = objects[i].Count;
-                    //Debug.WriteLine("Coin " + count + " has " + coints[i].Count + " points");
-                    count++;
+                points.ForEach(p => bmresult.SetPixel(p.X, p.Y, Color.Red));
 
-                    //Determine coin type based on number of pixels, not so efficient:)
-                    if (points > 18001)
-                    {
-                        value += 5;
-                        five++;
-                    }
-                    else if (points > 15001)
-                    {
-                        value += 1;
-                        one++;
-                    }
-                    else if (points > 11001)
-                    {
-                        value += 0.25f;
-                        p25++;
-                    }
-                    else if (points > 8001)
-                    {
-                        value += 0.10f;
-                        p10++;
-                    }
-                    else if (points > 6500)
-                    {
-                        value += 0.05f;
-                        p05++;
-                    }
-                }
+                double value = points.Count switch
+                {
+                    > 18000 => 5.00,
+                    > 15000 => 1.00,
+                    > 11000 => 0.25,
+                    > 8000 => 0.10,
+                    _ => 0.05
+                };
+
+                coinCounts[value] = coinCounts.GetValueOrDefault(value) + 1;
+                totalCoins++;
+                totalValue += value;
             }
 
-            String result =
-                "Coins found: " + count +
-                "\nTotal value: " + value +
-                "\n5 x " + five + " = " + 5 * five +
-                "\n1 x " + one + " = " + 1 * one +
-                "\n0.25 x " + p25 + " = " + 0.25 * p25 +
-                "\n0.10 x " + p10 + " = " + 0.10 * p10 +
-                "\n0.05 x " + p05 + " = " + 0.05 * p05;
-            Debug.WriteLine(result);
-            MessageBox.Show(result);
+            var result = $"Coins found: {totalCoins}\n" +
+                        $"Total value: {totalValue:F2}\n" +
+                        string.Join("\n", coinCounts
+                            .OrderByDescending(kvp => kvp.Key)
+                            .Select(kvp => $"{kvp.Key:F2} x {kvp.Value} = {kvp.Key * kvp.Value:F2}"));
 
+            pictureBoxCoinsResult.Image = bmresult;
+            MessageBox.Show(result);
         }
 
-        static void FindPoints(Bitmap image, int startX, int startY, bool[,] visited, int threshold, List<Point> contour)
+        static void Fill(Bitmap image, int startX, int startY, bool[,] visited, int threshold, List<Point> points)
         {
             Stack<Point> stack = new Stack<Point>();
             stack.Push(new Point(startX, startY));
@@ -635,7 +755,7 @@ namespace Image_Processing
                 Point p = stack.Pop();
                 Color neighborColor;
 
-                contour.Add(p);
+                points.Add(p);
 
                 for (int dy = -1; dy <= 1; dy++)
                 {
@@ -657,5 +777,6 @@ namespace Image_Processing
                 }
             }
         }
+
     }
 }

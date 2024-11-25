@@ -1,0 +1,121 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|c:\\users\\kuugang\\documents\\3rd year\\cs345\\image processing\\image processing\\dip.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|solutionrelative:image processing\\dip.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|c:\\users\\kuugang\\documents\\3rd year\\cs345\\image processing\\image processing\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|solutionrelative:image processing\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|c:\\users\\kuugang\\documents\\3rd year\\cs345\\image processing\\image processing\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|solutionrelative:image processing\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|c:\\users\\kuugang\\documents\\3rd year\\cs345\\image processing\\image processing\\convolutionmatrix.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|solutionrelative:image processing\\convolutionmatrix.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|c:\\users\\kuugang\\documents\\3rd year\\cs345\\image processing\\image processing\\coincounter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|solutionrelative:image processing\\coincounter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|c:\\users\\kuugang\\documents\\3rd year\\cs345\\image processing\\image processing\\utils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{224EA7C6-3DC1-45B2-9D40-9A3DED1D42C2}|Image Processing\\Image Processing.csproj|solutionrelative:image processing\\utils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Form1.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\Form1.cs",
+              "RelativeDocumentMoniker": "Image Processing\\Form1.cs",
+              "ToolTip": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\Form1.cs [Design]",
+              "RelativeToolTip": "Image Processing\\Form1.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-25T12:15:24.311Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ConvolutionMatrix.cs",
+              "DocumentMoniker": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\ConvolutionMatrix.cs",
+              "RelativeDocumentMoniker": "Image Processing\\ConvolutionMatrix.cs",
+              "ToolTip": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\ConvolutionMatrix.cs",
+              "RelativeToolTip": "Image Processing\\ConvolutionMatrix.cs",
+              "ViewState": "AgIAAGAAAAAAAAAAAIAxwJgAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-25T11:12:34.582Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DIP.cs",
+              "DocumentMoniker": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\DIP.cs",
+              "RelativeDocumentMoniker": "Image Processing\\DIP.cs",
+              "ToolTip": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\DIP.cs",
+              "RelativeToolTip": "Image Processing\\DIP.cs",
+              "ViewState": "AgIAAI0BAAAAAAAAAAApwJ4BAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-25T10:59:39.968Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Utils.cs",
+              "DocumentMoniker": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\Utils.cs",
+              "RelativeDocumentMoniker": "Image Processing\\Utils.cs",
+              "ToolTip": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\Utils.cs",
+              "RelativeToolTip": "Image Processing\\Utils.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-25T05:46:57.406Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\Form1.cs",
+              "RelativeDocumentMoniker": "Image Processing\\Form1.cs",
+              "ToolTip": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\Form1.cs",
+              "RelativeToolTip": "Image Processing\\Form1.cs",
+              "ViewState": "AgIAALwAAAAAAAAAAAAtwFEBAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-25T05:46:16.933Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "CoinCounter.cs",
+              "DocumentMoniker": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\CoinCounter.cs",
+              "RelativeDocumentMoniker": "Image Processing\\CoinCounter.cs",
+              "ToolTip": "C:\\Users\\Kuugang\\Documents\\3rd Year\\CS345\\Image Processing\\Image Processing\\CoinCounter.cs",
+              "RelativeToolTip": "Image Processing\\CoinCounter.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAxwI8AAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-25T05:44:51.58Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
